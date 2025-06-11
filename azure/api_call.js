@@ -25,6 +25,7 @@ app.post('/convert', async (req, res) => {
             The output MUST be valid and directly usable in a WinUI 3 project (MainWindow.xaml). 
             Include only the necessary WinUI 3 namespaces and class in the Window tag. 
             Do NOT include height or width in the Window tag. 
+            The main design elements MUST preserve their original width and height from the Figma JSON. 
             The main design elements must NOT be in the Window tag. 
             Do NOT include \`\`\` tags or any extra text. 
             If you are unsure, prefer WinUI 3 syntax and structure. 

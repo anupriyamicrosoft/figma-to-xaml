@@ -36,7 +36,8 @@ function extractAllNodeData(node: SceneNode): any {
     }
   }
 
-  // Optionally, include plugin data
+  // Optionally, include plugin data keys that might be attached to the node
+  // This is useful for 
   if ("getPluginDataKeys" in node && typeof node.getPluginDataKeys === "function") {
     const pluginData: Record<string, string> = {};
     for (const key of node.getPluginDataKeys()) {
