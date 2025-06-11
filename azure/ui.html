@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Figma to WinUI</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 5px;
+    }
+    .loading {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin-left: 14px;
+      vertical-align: middle;
+    }
+    .loading-circle {
+      width: 100%;
+      height: 100%;
+      border: 3px solid #bdb6ad;
+      border-top: 3px solid #222;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-sizing: border-box;
+      display: inline-block;
+      background: transparent;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      margin-right: 4px;
+    }
+    .tab.active {
+      background: #fff;
+      font-weight: bold;
+      font-size: 20px;
+      border-bottom: 1px solid #fff;
+    }
+    .panel {
+      display: none;
+    }
+    .panel.active {
+      display: block;
+    }
+    textarea {
+      width: 100%;
+      height: 400px;
+      font-family: monospace;
+    }
+    button {
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    input{
+      width: 50%;
+      padding: 8px;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    .panel-content {
+      position: relative;
+    }
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.7);
+      z-index: 10;
+    }
+    .loading-overlay .loading-circle {
+      width: 48px;
+      height: 48px;
+      border-width: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <div class="tab active" data-tab="xaml">XAML</div>
+    <div class="tab" data-tab="json">JSON</div>
+  </div>
+
+  <div id="xaml" class="panel active">
+    <div class="panel-content" style="position:relative;">
+      <textarea id="xamlOutput" readonly></textarea>
+      <input type="text" id="xamlName" placeholder="Enter name of Xaml File" />
+      <input type="text" id="className" placeholder="Enter name of Class" />
+      <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <span class="loading-circle"></span>
+      </div>
+    </div>
+  </div>
+  <div id="json" class="panel">
+    <div class="panel-content">
+      <textarea id="jsonOutput" readonly></textarea>
+    </div>
+  </div>
+  <button id="extract">Extract Design</button>
+  <button id="update">Update Name</button>
+  <button id="save">Save</button>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.getElementById("extract").onclick = () => {
+      const extractBtn = document.getElementById("extract");
+      extractBtn.disabled = true;
+      const className = document.getElementById("className").value.trim();
+      const xamlName = document.getElementById("xamlName").value.trim() || "MainWindow.xaml";
+      document.getElementById("loadingOverlay").style.display = "flex";
+      parent.postMessage({ pluginMessage: { type: "extract-design", className, xamlName } }, "*");
+    };
+
+
+    onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg.type === "design-xaml") {
+        document.getElementById("xamlOutput").value = msg.data;
+        document.getElementById("loadingOverlay").style.display = "none";
+        document.getElementById("extract").disabled = false;
+      }
+      if (msg.type === "design-json") {
+        document.getElementById("jsonOutput").value = JSON.stringify(msg.data, null, 2);
+      }
+    }; 
+
+
+document.getElementById("update").onclick = () => {
+      const className = document.getElementById("className").value.trim();
+      let fileName = document.getElementById("xamlName").value.trim() || "design.xaml";
+      let xamlContent = document.getElementById("xamlOutput").value;
+      if (className && fileName && xamlContent) {
+        let fileNameNoExt = fileName.replace(/\.xaml$/i, "");
+        xamlContent = xamlContent.replace(/x:Class="[^"]*"/, `x:Class="${className}.${fileNameNoExt}"`);
+        document.getElementById("xamlOutput").value = xamlContent;
+      }
+      else {
+        xamlContent = xamlContent.replace(/x:Class="[^"]*"/, `x:Class="MainWindow.${fileNameNoExt}"`);
+        document.getElementById("xamlOutput").value = xamlContent;
+      }
+    };
+
+
+    document.getElementById("save").onclick = () => {
+      let fileName = document.getElementById("xamlName").value.trim() || "design.xaml";
+      let xamlContent = document.getElementById("xamlOutput").value;
+      if (!fileName.toLowerCase().endsWith(".xaml")) {
+        fileName += ".xaml";
+      }
+      const blob = new Blob([xamlContent], { type: "application/xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+  </script>
+</body>
+</html>
