@@ -126,7 +126,7 @@ function rgbToHex(color: RGB): string {
 
 function updateXamlClass(xaml: string, newClassName: string, fileName: string): string {
   // This regex matches x:Class="OldClassName" in the root element
-  return xaml.replace(/x:Class="MainWindow"/, `x:Class="${newClassName}.${fileName}"`);
+  return xaml.replace(/x:Class="YourNamespace.MainWindow"/, `x:Class="${newClassName}.${fileName}"`);
 } 
 
 figma.ui.onmessage = msg => {
@@ -153,7 +153,8 @@ figma.ui.onmessage = msg => {
           let fileName = msg.xamlName || "MainWindow";
           // Remove .xaml extension if present
           fileName = fileName.replace(/\.xaml$/i, "");
-          xaml = updateXamlClass(xaml, msg.className, fileName);
+          let className = msg.className || "YourApp";
+          xaml = updateXamlClass(xaml, className, fileName);
         }
         console.log("Received XAML:", xaml);
         
