@@ -20,17 +20,7 @@ app.post('/convert', async (req, res) => {
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: 'You are a helpful assistant that converts Figma JSON to XAML for WinUI 3.' },
-        { role: 'user', content: `Convert this Figma JSON to XAML for WinUI 3 ONLY. 
-            Do NOT generate WPF, UWP, or any other XAML dialect. 
-            The output MUST be valid and directly usable in a WinUI 3 project (MainWindow.xaml). 
-            Include only the necessary WinUI 3 namespaces and class in the Window tag. 
-            Do NOT include height or width in the Window tag. 
-            The main design elements MUST preserve their original width and height from the Figma JSON. 
-            The main design elements must NOT be in the Window tag. 
-            Do NOT include \`\`\` tags or any extra text. 
-            If you are unsure, prefer WinUI 3 syntax and structure. 
-            Here is the Figma JSON:\n${JSON.stringify(figma_json)}`
-        }      ],
+        { role: 'user', content: `Convert this Figma JSON to XAML:\n${JSON.stringify(figma_json)}. Ensure the XAML is compatible with WinUI 3. ONLY return the XAML code. include only the headers like xmls and class in the window tag. don't include height and width in window tag. The main design elements must not be in window tag. It should be ready to paste into mainwindow.xaml as window tag. Don't include \`\`\` tags or any other text. ONLY COMPATIBLE WITH WINUI3` }      ],
       temperature: 0.2,
       response_format: { type: 'text' }
     });
