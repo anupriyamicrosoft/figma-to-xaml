@@ -20,6 +20,7 @@ function extractAllNodeData(node: SceneNode): any {
     "clipsContent", "guides", "layoutAlign", "layoutGrow", "absoluteBoundingBox"
   ];
 
+  // Extract properties from the node
   for (const key of props) {
     if (key in node) {
       const value = (node as any)[key];
@@ -37,7 +38,6 @@ function extractAllNodeData(node: SceneNode): any {
   }
 
   // Optionally, include plugin data keys that might be attached to the node
-  // This is useful for 
   if ("getPluginDataKeys" in node && typeof node.getPluginDataKeys === "function") {
     const pluginData: Record<string, string> = {};
     for (const key of node.getPluginDataKeys()) {
@@ -48,96 +48,24 @@ function extractAllNodeData(node: SceneNode): any {
   return result;
 }
 
-/* function extractNodeData(node: SceneNode): any {
-  const base: {
-    id: string;
-    name: string;
-    type: SceneNode["type"];
-    layout: { x: number; y: number; width: number; height: number };
-    style?: Record<string, any>;
-    content?: string;
-    children?: any[];
-  } = {
-    id: node.id,
-    name: node.name,
-    type: node.type,
-    layout: {
-      x: node.x,
-      y: node.y,
-      width: node.width,
-      height: node.height
-    }
-  };
-
-  if (
-    "fills" in node &&
-    Array.isArray(node.fills) &&
-    node.fills.length > 0
-  ) {
-    const fill = node.fills[0] as Paint;
-    if (fill.type === "SOLID") {
-      base["style"] = {
-        fill: rgbToHex(fill.color)
-      };
-    }
-  }
-
-  if (node.type === "TEXT") {
-    const textNode = node as TextNode;
-    base["content"] = textNode.characters;
-    base["style"] = {
-      ...base["style"],
-      fontSize: textNode.fontSize,
-      fontName: textNode.fontName
-    };
-  }
-
-  if ("children" in node) {
-    base["children"] = node.children.map(extractNodeData);
-  }
-
-  return base;
-}
- */
-/* function extractStyle(node: SceneNode) {
-  const fills = (node as GeometryMixin).fills;
-  let color = undefined;
-
-  if (fills && Array.isArray(fills) && fills.length > 0 && fills[0].type === "SOLID") {
-    const { r, g, b } = fills[0].color;
-    color = rgbToHex({ r, g, b });
-  }
-
-  return {
-    color: color, // Foreground color
-    opacity: "opacity" in node ? (node as any).opacity ?? 1 : 1 // Opacity
-  };
-}
-
-function rgbToHex(color: RGB): string {
-  const r = Math.round(color.r * 255);
-  const g = Math.round(color.g * 255);
-  const b = Math.round(color.b * 255);
-  return `#${[r, g, b].map(x => x.toString(16).padStart(2, "0")).join("")}`;
-} */
-
-
-
-
+// This function updates the x:Class attribute in the XAML string to reflect the new class name and file name
 function updateXamlClass(xaml: string, newClassName: string, fileName: string): string {
-  // This regex matches x:Class="OldClassName" in the root element
   return xaml.replace(/x:Class="YourNamespace.MainWindow"/, `x:Class="${newClassName}.${fileName}"`);
 } 
 
+// Listen for extract message from the UI
 figma.ui.onmessage = msg => {
   if (msg.type === "extract-design") {
     const selection = figma.currentPage.selection;
     if (selection.length === 0) {
       figma.notify("Please select at least one node.");
+      figma.ui.postMessage({ type: "extract-error", data: [] });
       return;
     }
-
+    // Extract data from selected nodes
     const json = selection.map(extractAllNodeData);
+
+    // Post the extracted JSON data back to the UI
     figma.ui.postMessage({ type: "design-json", data: json });
     
     fetch("https://figmatoxaml-cbe8hzfjg2bqdzch.canadacentral-01.azurewebsites.net/convert", {
@@ -149,48 +77,22 @@ figma.ui.onmessage = msg => {
     })
       .then(response => response.text())
       .then(xaml => {
-        if(msg.className && msg.className.length > 0) {
-          let fileName = msg.xamlName || "MainWindow";
+        
+          let fileName = msg.xamlName;
           // Remove .xaml extension if present
           fileName = fileName.replace(/\.xaml$/i, "");
-          let className = msg.className || "YourApp";
+          let className = msg.className;
           xaml = updateXamlClass(xaml, className, fileName);
-        }
-        console.log("Received XAML:", xaml);
-        
+
+        // Post the extracted XAML back to the UI
         figma.ui.postMessage({ type: "design-xaml", data: xaml });
       })
       .catch(error => {
         console.error("Error:", error);
       });
-
-    
-    // figma.ui.postMessage({ type: "design-xaml", data: xaml });
-  }
-
-  if (msg.type === "close-plugin") {
-    figma.closePlugin();
   }
 };
 
 
-/* figma.ui.onmessage = msg => {
-  if (msg.type === "extract-design") {
-    const selection = figma.currentPage.selection;
-    if (selection.length === 0) {
-      figma.notify("Please select at least one node.");
-      return;
-    }
 
-    const json = selection.map(extractNodeData);
-    // const xaml = json.map(jsonToXaml).join("\n");
-
-    figma.ui.postMessage({ type: "design-json", data: json });
-    // figma.ui.postMessage({ type: "design-xaml", data: xaml });
-  }
-
-  if (msg.type === "close-plugin") {
-    figma.closePlugin();
-  }
-}; */
 

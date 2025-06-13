@@ -128,7 +128,7 @@
     document.getElementById("extract").onclick = () => {
       const extractBtn = document.getElementById("extract");
       extractBtn.disabled = true;
-      const className = document.getElementById("className").value.trim();
+      const className = document.getElementById("className").value.trim() || "YourApp";
       const xamlName = document.getElementById("xamlName").value.trim() || "MainWindow.xaml";
       document.getElementById("loadingOverlay").style.display = "flex";
       parent.postMessage({ pluginMessage: { type: "extract-design", className, xamlName } }, "*");
@@ -145,12 +145,16 @@
       if (msg.type === "design-json") {
         document.getElementById("jsonOutput").value = JSON.stringify(msg.data, null, 2);
       }
+      if(msg.type === "extract-error") {
+        document.getElementById("loadingOverlay").style.display = "none";
+        document.getElementById("extract").disabled = false;
+      }
     }; 
 
 
 document.getElementById("update").onclick = () => {
       const className = document.getElementById("className").value.trim();
-      let fileName = document.getElementById("xamlName").value.trim() || "design.xaml";
+      let fileName = document.getElementById("xamlName").value.trim() || "MainWindow.xaml";
       let xamlContent = document.getElementById("xamlOutput").value;
       if (className && fileName && xamlContent) {
         let fileNameNoExt = fileName.replace(/\.xaml$/i, "");
@@ -158,7 +162,7 @@ document.getElementById("update").onclick = () => {
         document.getElementById("xamlOutput").value = xamlContent;
       }
       else {
-        xamlContent = xamlContent.replace(/x:Class="[^"]*"/, `x:Class="MainWindow.${fileNameNoExt}"`);
+        xamlContent = xamlContent.replace(/x:Class="[^"]*"/, `x:Class="MyApp.${fileNameNoExt}"`);
         document.getElementById("xamlOutput").value = xamlContent;
       }
     };

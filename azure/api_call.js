@@ -3,16 +3,19 @@ const cors = require('cors');
 const { AzureOpenAI } = require('openai');
 require('dotenv').config();
 
+// Initialize Express app
 const app = express();
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 
+// Initialize Azure OpenAI client with environment variables
 const client = new AzureOpenAI({
   azure_endpoint: process.env.AZURE_OPENAI_ENDPOINT,
   api_key: process.env.AZURE_OPENAI_API_KEY,
   apiVersion: process.env.OPENAI_API_VERSION || '2025-01-01-preview'
 });
 
+// Endpoint to convert Figma JSON to XAML
 app.post('/convert', async (req, res) => {
   try {
     const figma_json = req.body;
@@ -24,6 +27,8 @@ app.post('/convert', async (req, res) => {
       temperature: 0.2,
       response_format: { type: 'text' }
     });
+
+    // Extract the XAML content from the response
     const xaml = response.choices[0].message.content;
     res.status(200).send(xaml);
   } catch (e) {
@@ -31,6 +36,7 @@ app.post('/convert', async (req, res) => {
   }
 });
 
+// starts the server on the specified port or defaults to 5000
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
