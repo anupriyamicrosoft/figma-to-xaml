@@ -1,5 +1,4 @@
 # Figma to XAML Plugin
-# Figma to XAML Plugin
 
 This plugin converts Figma design files into **WinUI 3-compatible XAML code**, powered by **Azure OpenAI** and hosted on an **Azure Web App**.
 
@@ -23,9 +22,11 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 ## Setup
 
 1. Clone this repo.
+
     ```git clone https://github.com/anupriyamicrosoft/figma-to-xaml.git```
 
 2. install dependencies
+
   ```npm install```
 
 3. Ensure your Azure OpenAI resource is active and accessible.
@@ -55,9 +56,9 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 
 ## Roadmap
 
-- [ ] Add support for chunked JSON processing
-- [ ] Improve error handling and logging
-- [ ] UI enhancements for previewing generated code
-- [ ] Support for more Figma component types
+- Add support for chunked JSON processing
+- Improve error handling and logging
+- UI enhancements for previewing generated code
+- Support for more Figma component types
 
 
