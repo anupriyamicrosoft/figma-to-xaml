@@ -17,6 +17,18 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 3. Azure OpenAI processes the design and returns XAML code.
 4. The plugin displays or downloads the generated code.
 
+
+## 📦 Setup
+
+1. Clone this repo.
+2. install dependencies
+3. Ensure your Azure OpenAI resource is active and accessible.
+4. Configure the environment variables in your Azure Web App.
+5. In the Figma App, import the plugin using your ```manifest.json```.
+6. Open a design file and run your plugin.
+7. View or download the XAML directly from the plugin interface.
+
+
 ## ⚠️ Known Limitations
 
 - Large JSON files (e.g., > 4000 lines) may result in incomplete XAML due to token or memory limits.

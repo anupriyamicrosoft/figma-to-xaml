@@ -1,6 +1,6 @@
 {
-  "name": "Figma to WinUI JSON",
-  "id": "figma-to-winui-json-plugin",
+  "name": "Figma to XAML",
+  "id": "figma-to-xaml-plugin",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
