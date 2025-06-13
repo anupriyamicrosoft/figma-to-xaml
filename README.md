@@ -4,7 +4,7 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 
 ## 🚀 Features
 
-- Converts Figma JSON into clean, structured XAML code
+- Converts Figma into clean, structured XAML code
 - Supports WinUI 3 layout and control mapping
 - Uses Azure OpenAI for intelligent code generation
 - Handles most standard Figma components
