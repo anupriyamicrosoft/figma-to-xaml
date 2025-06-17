@@ -35,7 +35,7 @@ app.post('/convert', async (req, res) => {
       { role: 'system', content: 'You are a helpful assistant that converts Figma JSON and a reference image to XAML for WinUI 3.' },
       imageMessage,
       { role: 'user', content: `Convert this Figma JSON to XAML. Take the image as reference. Ensure the XAML is compatible with WinUI 3. ONLY return the XAML code. Include the headers like xmls and class in the window tag. Don't include height and width in window tag. The main design elements must not be in window tag. It should be ready to paste into mainwindow.xaml as window tag. Don't include \`\`\` tags or any other text. ONLY COMPATIBLE WITH WINUI3.\nClass name: ${className || 'YourApp'}. XAML file name: ${xamlName || 'MainWindow'}.\nFigma JSON: ${JSON.stringify(json)}` }
-    ].filter(Boolean); // Remove nulls if no image
+    ].filter(Boolean);
 
     console.log('Sending messages to OpenAI:', JSON.stringify(messages, null, 2));
     const response = await client.chat.completions.create({
