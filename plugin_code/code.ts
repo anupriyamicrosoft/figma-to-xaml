@@ -3,8 +3,29 @@
 /// <reference types="@figma/plugin-typings" />
 
 
-figma.showUI(__html__, { width: 600, height: 600 });
+figma.showUI(__html__, { width: 500, height: 600 });
 
+
+// Deeply sanitize any value to ensure it is serializable
+function deepSanitize(value: any): any {
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.map(deepSanitize);
+  if (typeof value === 'function' || typeof value === 'symbol') return undefined;
+  if (typeof value === 'object') {
+    // Skip Figma node objects
+    if ('id' in value && 'type' in value) return undefined;
+    const result: any = {};
+    for (const k in value) {
+      if (Object.prototype.hasOwnProperty.call(value, k)) {
+        const sanitized = deepSanitize(value[k]);
+        if (sanitized !== undefined) result[k] = sanitized;
+      }
+    }
+    return result;
+  }
+  return undefined;
+}
 
 function extractAllNodeData(node: SceneNode): any {
   const result: any = {};
@@ -27,12 +48,8 @@ function extractAllNodeData(node: SceneNode): any {
       if (key === "children" && Array.isArray(value)) {
         result.children = value.map(extractAllNodeData);
       } else {
-        try {
-          JSON.stringify(value);
-          result[key] = value;
-        } catch {
-          // skip unserializable
-        }
+        const sanitized = deepSanitize(value);
+        if (sanitized !== undefined) result[key] = sanitized;
       }
     }
   }
@@ -62,31 +79,47 @@ figma.ui.onmessage = async msg => {
       figma.ui.postMessage({ type: "extract-error", data: [] });
       return;
     }
+    figma.notify("Selection extracted");
+    figma.ui.postMessage({ type: "debug", data: "Selection extracted" });
 
-    // Export the entire selection as a single PNG image
-    let imageBase64 = null;
+    
+    // Extract combined JSON for the selection with detailed error logging
+    let json = null;
     try {
-      const exportNode = figma.group(selection, figma.currentPage);
-      const imageBytes = await exportNode.exportAsync({ format: "PNG" });
-      imageBase64 = figma.base64Encode(imageBytes);
-      exportNode.remove(); // Clean up the temporary group
+      console.log('Selection for extraction:', selection.map(n => n.name));
+      json = selection.map((node, idx) => {
+        try {
+          return extractAllNodeData(node);
+        } catch (nodeErr) {
+          console.error(`Error extracting node at index ${idx} (name: ${node.name}):`, nodeErr);
+          figma.ui.postMessage({ type: "extract-error", data: `Error extracting node: ${node.name}` });
+          return null;
+        }
+      });
+      // Remove any nulls from failed nodes
+      json = json.filter(Boolean);
+      if (json.length === 0) throw new Error('All nodes failed to extract.');
+      figma.notify("JSON extracted");
+      figma.ui.postMessage({ type: "debug", data: "JSON extracted" });
+      figma.ui.postMessage({ type: "design-json", data: json });
     } catch (err) {
-      figma.notify("Failed to export selection as image.");
-      figma.ui.postMessage({ type: "extract-error", data: "Image export failed." });
+      console.error('Failed to extract JSON:', err);
+      figma.notify("Failed to extract JSON.");
+      figma.ui.postMessage({ type: "extract-error", data: "JSON extraction failed." });
       return;
     }
 
-    // Extract combined JSON for the selection
-    const json = selection.map(extractAllNodeData);
-    figma.ui.postMessage({ type: "design-json", data: json });
-
-    // Send both JSON and image to backend
+    // Send JSON to backend
     try {
+      figma.notify("Sending to backend...");
+      figma.ui.postMessage({ type: "debug", data: "Sending to backend..." });
       const response = await fetch("https://figmatoxaml-cbe8hzfjg2bqdzch.canadacentral-01.azurewebsites.net/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ json, image: imageBase64, className: msg.className, xamlName: msg.xamlName })
+        body: JSON.stringify({ json, className: msg.className, xamlName: msg.xamlName })
       });
+      figma.notify("Response received from backend");
+      figma.ui.postMessage({ type: "debug", data: "Response received from backend" });
       if (!response.ok) throw new Error("Backend error");
       let xaml = await response.text();
       let fileName = (msg.xamlName || "MainWindow").replace(/\.xaml$/i, "");
@@ -95,11 +128,10 @@ figma.ui.onmessage = async msg => {
       figma.ui.postMessage({ type: "design-xaml", data: xaml });
     } catch (error) {
       let errorMsg = (error instanceof Error) ? error.message : String(error);
-      console.error("Error converting selection:", errorMsg);
+      figma.notify("Error converting selection: " + errorMsg);
       figma.ui.postMessage({ type: "extract-error", data: errorMsg });
     }
   }
-
   if (msg.type === "close-plugin") {
     figma.closePlugin();
   }

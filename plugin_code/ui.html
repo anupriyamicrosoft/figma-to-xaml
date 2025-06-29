@@ -149,6 +149,10 @@
         document.getElementById("loadingOverlay").style.display = "none";
         document.getElementById("extract").disabled = false;
       }
+      if(msg.type === "debug") {
+        console.log("DEBUG:", msg.data);
+        // Optionally, display in a debug area in the UI
+      }
     }; 
 
 
