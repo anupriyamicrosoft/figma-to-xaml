@@ -6,7 +6,7 @@ require('dotenv').config();
 // Initialize Express app
 const app = express();
 app.use(cors({ credentials: true, origin: true }));
-app.use(express.json());
+app.use(express.json({limit: '10mb'})); // Increased limit for larger JSON payloads
 
 // Initialize Azure OpenAI client with environment variables
 const client = new AzureOpenAI({
@@ -19,23 +19,12 @@ const client = new AzureOpenAI({
 app.post('/convert', async (req, res) => {
   try {
     console.log('Received request body:', JSON.stringify(req.body, null, 2));
-    const { json, image, className, xamlName } = req.body;
-    // Prepare the image as a data URL for OpenAI (if present)
-    let imageMessage = null;
-    if (image) {
-      imageMessage = {
-        type: 'image_url',
-        image_url: {
-          url: `data:image/png;base64,${image}`
-        }
-      };
-    }
-    // Prepare the messages array for GPT-4o vision
+    const { json, className, xamlName } = req.body;
+    // Prepare the messages array for GPT-4o (JSON only, no image)
     const messages = [
-      { role: 'system', content: 'You are a helpful assistant that converts Figma JSON and a reference image to XAML for WinUI 3.' },
-      imageMessage,
-      { role: 'user', content: `Convert this Figma JSON to XAML. Take the image as reference. Ensure the XAML is compatible with WinUI 3. ONLY return the XAML code. Include the headers like xmls and class in the window tag. Don't include height and width in window tag. The main design elements must not be in window tag. It should be ready to paste into mainwindow.xaml as window tag. Don't include \`\`\` tags or any other text. ONLY COMPATIBLE WITH WINUI3.\nClass name: ${className || 'YourApp'}. XAML file name: ${xamlName || 'MainWindow'}.\nFigma JSON: ${JSON.stringify(json)}` }
-    ].filter(Boolean);
+      { role: 'system', content: `You are a helpful assistant that converts Figma JSON to XAML for WinUI 3.` },
+      { role: 'user', content: `Convert this Figma JSON to XAML:\n${JSON.stringify(json)}. Use object element syntax. Don't include \`\`\` tags or any other text. Ensure the XAML is compatible with WinUI 3. ONLY return the XAML code. include the headers like xmls and class in the window tag. don't include height and width in window tag. Include properties of elements like height, width, background etc. The main design elements must not be in window tag. Add functionalities like input , date , links where required. Add a ScrollViewer. It should be ready to paste into mainwindow.xaml as window tag. Add appropriate tags for < , > , & , etc.` }
+    ];
 
     console.log('Sending messages to OpenAI:', JSON.stringify(messages, null, 2));
     const response = await client.chat.completions.create({
