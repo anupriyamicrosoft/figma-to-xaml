@@ -29,17 +29,20 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 
     ```npm install```
 
-3. In the Figma App, import the plugin using your ```manifest.json```.
+3. Compile code.ts to generate code.js
+    ```tsc code.ts```
+
+4. In the Figma App, import the plugin using your ```manifest.json```.
 
   ![image](https://github.com/user-attachments/assets/76cc7778-216d-48fe-a8a1-e87595ac4785)
 
-4. Open a design file and run your plugin.
+5. Open a design file and run your plugin.
 
   ![image](https://github.com/user-attachments/assets/adeaea37-29b7-4e53-8909-ed1a07269ee2)
 
-5. View or download the XAML directly from the plugin interface.
+6. View or download the XAML directly from the plugin interface.
 
-  ![image](https://github.com/user-attachments/assets/0c9b64d1-e412-4b41-bb09-163fb575fb23)
+  ![image](https://github.com/user-attachments/assets/e4b26640-777f-4021-859a-27a3b7623b48)
 
 
 

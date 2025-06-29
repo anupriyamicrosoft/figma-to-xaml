@@ -3,7 +3,7 @@
 /// <reference types="@figma/plugin-typings" />
 
 
-figma.showUI(__html__, { width: 500, height: 600 });
+figma.showUI(__html__, { width: 500, height: 900 });
 
 
 // Deeply sanitize any value to ensure it is serializable
@@ -75,14 +75,13 @@ figma.ui.onmessage = async msg => {
   if (msg.type === "extract-design") {
     const selection = figma.currentPage.selection;
     if (selection.length === 0) {
-      figma.notify("Please select at least one node.");
+      // Send error message to UI for display
+      figma.ui.postMessage({ type: "ui-error", data: "Please select at least one node to extract." });
       figma.ui.postMessage({ type: "extract-error", data: [] });
       return;
     }
-    figma.notify("Selection extracted");
     figma.ui.postMessage({ type: "debug", data: "Selection extracted" });
 
-    
     // Extract combined JSON for the selection with detailed error logging
     let json = null;
     try {
@@ -99,26 +98,23 @@ figma.ui.onmessage = async msg => {
       // Remove any nulls from failed nodes
       json = json.filter(Boolean);
       if (json.length === 0) throw new Error('All nodes failed to extract.');
-      figma.notify("JSON extracted");
       figma.ui.postMessage({ type: "debug", data: "JSON extracted" });
       figma.ui.postMessage({ type: "design-json", data: json });
     } catch (err) {
       console.error('Failed to extract JSON:', err);
-      figma.notify("Failed to extract JSON.");
+      figma.ui.postMessage({ type: "ui-error", data: "Error: XAML couldn't be generated." });
       figma.ui.postMessage({ type: "extract-error", data: "JSON extraction failed." });
       return;
     }
 
     // Send JSON to backend
     try {
-      figma.notify("Sending to backend...");
       figma.ui.postMessage({ type: "debug", data: "Sending to backend..." });
       const response = await fetch("https://figmatoxaml-cbe8hzfjg2bqdzch.canadacentral-01.azurewebsites.net/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ json, className: msg.className, xamlName: msg.xamlName })
       });
-      figma.notify("Response received from backend");
       figma.ui.postMessage({ type: "debug", data: "Response received from backend" });
       if (!response.ok) throw new Error("Backend error");
       let xaml = await response.text();
@@ -128,7 +124,7 @@ figma.ui.onmessage = async msg => {
       figma.ui.postMessage({ type: "design-xaml", data: xaml });
     } catch (error) {
       let errorMsg = (error instanceof Error) ? error.message : String(error);
-      figma.notify("Error converting selection: " + errorMsg);
+      figma.ui.postMessage({ type: "ui-error", data: "Error: XAML couldn't be generated." });
       figma.ui.postMessage({ type: "extract-error", data: errorMsg });
     }
   }

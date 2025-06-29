@@ -5,72 +5,117 @@
   <title>Figma to Xaml</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 5px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      background: #F8F9FC;
+      color: #1E3765;
+      height: 700px;
+      min-height: 700px;
+      max-height: 700px;
+      overflow: hidden;
     }
-    .loading {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      margin-left: 14px;
-      vertical-align: middle;
-    }
-    .loading-circle {
-      width: 100%;
-      height: 100%;
-      border: 3px solid #bdb6ad;
-      border-top: 3px solid #222;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      box-sizing: border-box;
-      display: inline-block;
-      background: transparent;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .tabs {
-      display: flex;
+    .plugin-header {
+      text-align: center;
       margin-bottom: 10px;
+      background: #1E3765;
+      color: #F8F9FC;
+      padding: 10px 0 6px 0;
+      border-bottom: 2px solid #B0C6D4;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 2px 8px rgba(30,55,101,0.08);
     }
-    .tab {
-      padding: 8px 16px;
-      cursor: pointer;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-bottom: none;
-      margin-right: 4px;
+    .plugin-header h2 {
+      margin: 0;
+      font-size: 1.4em;
+      font-weight: 700;
+      color: #F8F9FC;
+      letter-spacing: 1px;
     }
-    .tab.active {
+    .plugin-header .subtitle {
+      margin: 2px 0 0 0;
+      font-size: 0.75em;
+      color: #B0C6D4;
+      font-weight: 400;
+    }
+    .panel-content {
       background: #fff;
-      font-weight: bold;
-      font-size: 20px;
-      border-bottom: 1px solid #fff;
-    }
-    .panel {
-      display: none;
-    }
-    .panel.active {
-      display: block;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(30,55,101,0.08);
+      padding: 12px 8px 8px 8px;
+      margin-bottom: 10px;
     }
     textarea {
       width: 100%;
-      height: 400px;
+      height: 370px;
       font-family: monospace;
+      background: #F8F9FC;
+      color: #000000;
+      border: 1px solid #B0C6D4;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.98em;
+      margin-bottom: 8px;
+      resize: vertical;
+      min-height: 120px;
+      
+    }
+    input {
+      width: 48%;
+      padding: 7px;
+      margin-top: 6px;
+      margin-bottom: 3px;
+      margin-right: 2%;
+      box-sizing: border-box;
+      border: 1px solid #B0C6D4;
+      border-radius: 6px;
+      background: #F8F9FC;
+      color: #1E3765;
+      font-size: 0.98em;
+    }
+    input:focus {
+      outline: 2px solid #1E3765;
+      background: #fff;
+    }
+    input::placeholder {
+      color: #B0C6D4;     
+      font-size: 0.95em;   
+      font-style: italic;  
+      opacity: 1;          /* Ensures color is not faded */
     }
     button {
-      margin-top: 10px;
-      margin-right: 10px;
+      background: #1E3765;
+      color: #F8F9FC;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      font-size: 0.88em;
+      font-weight: 600;
+      margin-top: 6px;
+      margin-right: 3px;
+      margin-left: 6px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      box-shadow: 0 1px 4px rgba(30,55,101,0.08);
     }
-    input{
-      width: 50%;
-      padding: 8px;
-      margin-top: 10px;
-      box-sizing: border-box;
+    #extract, #update {
+      background: #fff;
+      color: #1E3765;
+      border: 2px solid #1E3765;
     }
-    .panel-content {
-      position: relative;
+    #extract:hover:not(:disabled), #update:hover:not(:disabled) {
+      background: #B0C6D4;
+      color: #1E3765;
+      border-color: #1E3765;
+    }
+    button:hover:not(:disabled) {
+      background: #B0C6D4;
+      color: #1E3765;
+    }
+    button:disabled {
+      background: #B0C6D4;
+      color: #fff;
+      cursor: not-allowed;
+      border-color: #B0C6D4;
     }
     .loading-overlay {
       position: absolute;
@@ -78,82 +123,198 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.7);
+      background: rgba(248,249,252,0.7);
       z-index: 10;
+      border-radius: 8px;
     }
-    .loading-overlay .loading-circle {
-      width: 48px;
-      height: 48px;
-      border-width: 4px;
+    .loading-circle {
+      width: 36px;
+      height: 36px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #B0C6D4 #B0C6D4 #F8F9FC;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      background: transparent;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error-box {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff0f0;
+      color: #b00020;
+      border: 1.5px solid #b00020;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin: 10px 0 8px 0;
+      font-size: 0.98em;
+      box-shadow: 0 2px 8px rgba(176,0,32,0.06);
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 320px;
+      max-width: 90vw;
+      z-index: 1000;
+    }
+    .close-error {
+      background: #b00020;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-size: 0.92em;
+      font-weight: 600;
+      margin-left: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .close-error:hover {
+      background: #1E3765;
+      color: #fff;
+    }
+    /* Tooltip styles */
+    .info-icon {
+      display: inline-block;
+      margin-left: 4px;
+      color: #B0C6D4;
+      font-size: 1em;
+      cursor: pointer;
+      position: relative;
+      vertical-align: middle;
+    }
+    .info-icon:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      width: max-content;
+      max-width: 220px;
+      background: #1E3765;
+      color: #F8F9FC;
+      text-align: left;
+      border-radius: 6px;
+      padding: 6px 10px;
+      position: absolute;
+      z-index: 2000;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.72em;
+      box-shadow: 0 2px 8px rgba(30,55,101,0.12);
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: pre-line;
+    }
+    .info-icon .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: #1E3765 transparent transparent transparent;
     }
   </style>
 </head>
 <body>
-  <div class="tabs">
-    <div class="tab active" data-tab="xaml">XAML</div>
-    <div class="tab" data-tab="json">JSON</div>
+  <!-- Removed tabs, added professional heading -->
+  <div class="plugin-header">
+    <h2>Figma to WinUI 3 XAML Converter</h2>
+    <p class="subtitle">Convert your Figma designs to clean, production-ready XAML for WinUI 3.</p>
   </div>
 
   <div id="xaml" class="panel active">
     <div class="panel-content" style="position:relative;">
-      <textarea id="xamlOutput" readonly></textarea>
-      <input type="text" id="xamlName" placeholder="Enter name of Xaml File" />
-      <input type="text" id="className" placeholder="Enter name of Class" />
+      <div style="position:relative;">
+        <textarea id="xamlOutput" readonly></textarea>
+        <div id="xamlPlaceholder" style="position:absolute; left:8px; top:8px; color:#B0C6D4; pointer-events:none; font-size:0.98em; user-select:none; font-style: italic;">Your XAML will appear here...</div>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:4px; align-items:center;">
+        <input type="text" id="xamlName" placeholder="Enter name of Xaml File" />
+        <span class="info-icon" tabindex="0">&#9432;
+          <span class="tooltip">Name of the XAML file to generate (e.g., MainWindow.xaml).</span>
+        </span>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:4px; align-items:center;">
+        <input type="text" id="className" placeholder="Enter name of Class" />
+        <span class="info-icon" tabindex="0">&#9432;
+          <span class="tooltip">Class/ Project for the generated XAML (e.g., MyApp).</span>
+        </span>
+      </div>
       <div class="loading-overlay" id="loadingOverlay" style="display:none;">
         <span class="loading-circle"></span>
       </div>
     </div>
   </div>
-  <div id="json" class="panel">
-    <div class="panel-content">
-      <textarea id="jsonOutput" readonly></textarea>
-    </div>
-  </div>
   <button id="extract">Extract Design</button>
   <button id="update">Update Name</button>
   <button id="save">Save</button>
+  <div id="errorBox" class="error-box">
+    <span id="errorMessage"></span>
+    <button id="closeError" class="close-error">Close</button>
+  </div>
 
   <script>
-    const tabs = document.querySelectorAll('.tab');
-    const panels = document.querySelectorAll('.panel');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        panels.forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.tab).classList.add('active');
-      });
-    });
-
     document.getElementById("extract").onclick = () => {
       const extractBtn = document.getElementById("extract");
+      const updateBtn = document.getElementById("update");
+      const saveBtn = document.getElementById("save");
       extractBtn.disabled = true;
+      updateBtn.disabled = true;
+      saveBtn.disabled = true;
       const className = document.getElementById("className").value.trim() || "YourApp";
       const xamlName = document.getElementById("xamlName").value.trim() || "MainWindow.xaml";
       document.getElementById("loadingOverlay").style.display = "flex";
       parent.postMessage({ pluginMessage: { type: "extract-design", className, xamlName } }, "*");
     };
 
-
     onmessage = (event) => {
       const msg = event.data.pluginMessage;
+      const extractBtn = document.getElementById("extract");
+      const updateBtn = document.getElementById("update");
+      const saveBtn = document.getElementById("save");
+      if (msg.type === "ui-error") {
+        const errorBox = document.getElementById("errorBox");
+        const errorMessage = document.getElementById("errorMessage");
+        errorMessage.textContent = msg.data;
+        errorBox.style.display = "flex";
+        // Also hide loading overlay and re-enable buttons in case of error
+        document.getElementById("loadingOverlay").style.display = "none";
+        extractBtn.disabled = false;
+        updateBtn.disabled = false;
+        saveBtn.disabled = false;
+      }
       if (msg.type === "design-xaml") {
         document.getElementById("xamlOutput").value = msg.data;
         document.getElementById("loadingOverlay").style.display = "none";
-        document.getElementById("extract").disabled = false;
-      }
-      if (msg.type === "design-json") {
-        document.getElementById("jsonOutput").value = JSON.stringify(msg.data, null, 2);
+        extractBtn.disabled = false;
+        updateBtn.disabled = false;
+        saveBtn.disabled = false;
       }
       if(msg.type === "extract-error") {
         document.getElementById("loadingOverlay").style.display = "none";
-        document.getElementById("extract").disabled = false;
+        extractBtn.disabled = false;
+        updateBtn.disabled = false;
+        saveBtn.disabled = false;
       }
       if(msg.type === "debug") {
         console.log("DEBUG:", msg.data);
         // Optionally, display in a debug area in the UI
       }
-    }; 
+    };
+
+    document.getElementById("closeError").onclick = () => {
+      document.getElementById("errorBox").style.display = "none";
+    };
 
 
 document.getElementById("update").onclick = () => {
@@ -186,6 +347,26 @@ document.getElementById("update").onclick = () => {
       a.click();
       URL.revokeObjectURL(url);
     };
+
+    // Placeholder logic for XAML output
+    function updateXamlPlaceholder() {
+      const xamlOutput = document.getElementById("xamlOutput");
+      const placeholder = document.getElementById("xamlPlaceholder");
+      if (xamlOutput.value.trim() === "") {
+        placeholder.style.display = "block";
+      } else {
+        placeholder.style.display = "none";
+      }
+    }
+    document.getElementById("xamlOutput").addEventListener("input", updateXamlPlaceholder);
+    // Also update placeholder after setting value from plugin
+    updateXamlPlaceholder();
+    // Patch onmessage to update placeholder after output changes
+    const origOnMessage = onmessage;
+    onmessage = function(event) {
+      if (typeof origOnMessage === 'function') origOnMessage(event);
+      updateXamlPlaceholder();
+    }
   </script>
 </body>
 </html>
