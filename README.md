@@ -39,7 +39,8 @@ This plugin converts Figma design files into **WinUI 3-compatible XAML code**, p
 
 5. View or download the XAML directly from the plugin interface.
 
-  ![image](https://github.com/user-attachments/assets/0c9b64d1-e412-4b41-bb09-163fb575fb23)
+ ![image](https://github.com/user-attachments/assets/e4b26640-777f-4021-859a-27a3b7623b48)
+
 
 
 
