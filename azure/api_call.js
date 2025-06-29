@@ -36,7 +36,9 @@ app.post('/convert', async (req, res) => {
     console.log('OpenAI response:', JSON.stringify(response, null, 2));
 
     // Extract the XAML content from the response
-    const xaml = response.choices[0].message.content;
+    let xaml = response.choices[0].message.content;
+    // Remove any code block tags (``` or ```xml)
+    xaml = xaml.replace(/```[a-zA-Z]*\n?|```/g, '').trim();
     res.status(200).send(xaml);
   } catch (e) {
     console.error('Error in /convert:', e);
